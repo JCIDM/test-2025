@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Game — The Underground Letters</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="site-wrap">
+    <header>
+      <div class="brand">The Underground Letters</div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="notes.html">Notes</a>
+        <a href="game.html">Game</a>
+      </nav>
+    </header>
+
+    <div class="page-header">
+      <div class="section-title">Game</div>
+      <h1>Confession in Three Lamps</h1>
+    </div>
+
+    <section class="game-panel">
+      <h2 class="game-title">The Desk of Two Ghosts</h2>
+      <p class="game-description">
+        A lamp hums. The city presses its face to the window. On the desk sit a typewriter,
+        a stack of letters, and a small icon that refuses to judge you. Click an object to
+        investigate and choose how the night will answer.
+      </p>
+
+      <div class="scene" aria-label="A desk scene with interactive objects">
+        <div class="window scene-object" id="obj-window" aria-hidden="true"></div>
+        <div class="lamp scene-object" id="obj-lamp" aria-hidden="true"></div>
+        <div class="desk" aria-hidden="true"></div>
+        <div class="icon scene-object" id="obj-icon" aria-hidden="true"></div>
+        <div class="typewriter scene-object" id="obj-typewriter" aria-hidden="true"></div>
+        <div class="letters scene-object" id="obj-letters" aria-hidden="true"></div>
+
+        <button class="hotspot" data-scene="typewriter" data-target="obj-typewriter" style="left: 30%; top: 62%;">Typewriter</button>
+        <button class="hotspot" data-scene="letters" data-target="obj-letters" style="left: 56%; top: 64%;">Letters</button>
+        <button class="hotspot" data-scene="icon" data-target="obj-icon" style="left: 18%; top: 70%;">Icon</button>
+        <button class="hotspot" data-scene="window" data-target="obj-window" style="left: 14%; top: 20%;">Window</button>
+        <button class="hotspot" data-scene="lamp" data-target="obj-lamp" style="right: 16%; top: 40%;">Lamp</button>
+      </div>
+
+      <div class="outcome" id="outcome">Outcome: The room waits for a confession.</div>
+    </section>
+
+    <footer class="footer">
+      <span>St. Petersburg, in perpetual twilight</span>
+      <span>Every choice is a confession</span>
+    </footer>
+  </div>
+
+    <div class="modal" id="modal" aria-hidden="true">
+      <div class="modal-content">
+        <h2 class="modal-title" id="modal-title"></h2>
+        <p class="game-description" id="modal-text"></p>
+        <p class="outcome" id="modal-outcome"></p>
+        <div class="typewriter-input" id="typewriter-input">
+          <label for="confession">Type your confession</label>
+          <textarea id="confession" placeholder="Begin..."></textarea>
+          <button class="choice-button" id="confession-submit">Let the machine answer</button>
+        </div>
+        <div class="modal-choices" id="modal-choices"></div>
+        <button class="close-button" id="close-modal">Close</button>
+      </div>
+    </div>
+
+  <script>
+    const scenes = {
+      typewriter: {
+        title: "Typewriter",
+        text: "The keys are worn smooth. On the ribbon sits a slip of paper titled \"The Simulacrum of Guilt.\"",
+        type: "confession",
+        choices: [
+          { label: "Type a confession", outcome: "Outcome: The clack of keys becomes a prayer." },
+          { label: "Type a denial", outcome: "Outcome: The machine resists your lie." }
+        ]
+      },
+      letters: {
+        title: "Letters",
+        text: "The stack smells of iron and dust. A debt notice lies atop a letter from a brother long vanished.",
+        choices: [
+          { label: "Read the debt notice", next: "debt-notice" },
+          { label: "Read the brother's letter", next: "brother-letter" }
+        ]
+      },
+      "brother-letter": {
+        title: "The Brother's Letter",
+        text: "The handwriting is his, yet the date is wrong by decades. He writes from a city that never burned, and says he met you on a different winter.",
+        choices: [
+          { label: "Believe him", next: "brother-believe" },
+          { label: "Doubt him", next: "brother-doubt" }
+        ]
+      },
+      "brother-believe": {
+        title: "The Parallel City",
+        text: "You read again. He speaks of a version of you who stayed kind, who forgave, who never took the bribe. The words cut like mercy.",
+        choices: [
+          { label: "Write back", next: "brother-write" },
+          { label: "Follow his directions", next: "brother-follow" }
+        ]
+      },
+      "brother-doubt": {
+        title: "The Doubt",
+        text: "You press the letter to the lamp. The ink is real. The paper is real. Your conscience is the only thing that feels unreal.",
+        choices: [
+          { label: "Confess to yourself", next: "brother-confess" },
+          { label: "Destroy the letter", next: "brother-destroy" }
+        ]
+      },
+      "brother-write": {
+        title: "The Reply",
+        text: "You write to a brother who may never have lived. You ask if he forgives you for a sin that may not be his to absolve.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: A letter to another world is still a letter to your own soul."
+      },
+      "brother-follow": {
+        title: "The Crossing",
+        text: "He names a bridge at midnight. You go. The snow is the same, the river is not. For a moment, the air feels doubled.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: You do not cross, but you are no longer certain you could not."
+      },
+      "brother-confess": {
+        title: "The Confession",
+        text: "You confess to the one person who cannot leave the room: yourself. The letter trembles in your hand like a second heartbeat.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: The truth is smaller than you feared, and heavier than you hoped."
+      },
+      "brother-destroy": {
+        title: "The Ashes",
+        text: "You burn the letter and watch the smoke twist into shapes that resemble a face you love and cannot forgive.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: You keep your world intact, but the crack remains."
+      },
+      "debt-notice": {
+        title: "Debt Notice",
+        text: "The paper is warm with another hand's anger. It asks for what you cannot give. The ink smells like iron.",
+        choices: [
+          { label: "Write a confession", next: "confess" },
+          { label: "Burn the letter", next: "burn" }
+        ]
+      },
+      confess: {
+        title: "The Confession",
+        text: "You write with a trembling hand. You admit what you did and what you fear. The page is soaked with a kind of relief.",
+        choices: [
+          { label: "Seal the letter", next: "seal" },
+          { label: "Tear it up", next: "tear" }
+        ]
+      },
+      burn: {
+        title: "The Ashes",
+        text: "The letter curls and collapses. The room fills with smoke and a small, temporary bravery.",
+        choices: [
+          { label: "Sit in the smoke", next: "end-smoke" },
+          { label: "Open a window", next: "end-window" }
+        ]
+      },
+      seal: {
+        title: "The Seal",
+        text: "You send the confession. It might not save you, but it tells the truth. Sometimes that is enough.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: Mercy is never clean, but it is real."
+      },
+      tear: {
+        title: "The Torn Page",
+        text: "The letter scatters. The confession returns to your ribs, heavier than before.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: You keep the secret, and it keeps you."
+      },
+      "end-smoke": {
+        title: "The Smoke",
+        text: "You breathe in the ash. It tastes like a small and stubborn freedom.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: Freedom is brief, but it is yours."
+      },
+      "end-window": {
+        title: "The Window",
+        text: "Cold air clears the room. The debt remains. The night does not.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: The air is clean, the conscience is not."
+      },
+      icon: {
+        title: "Icon",
+        text: "A small icon watches the desk. Its gilded edges hum with a frequency you feel in your teeth.",
+        choices: [
+          { label: "Touch the relic", next: "icon-touch" },
+          { label: "Whisper a confession", next: "icon-confess" },
+          { label: "Inspect the circuitry", next: "icon-circuit" }
+        ]
+      },
+      "icon-touch": {
+        title: "The Relic",
+        text: "The surface is warm, as if held by someone in a parallel room. A faint dial glows behind the gold leaf.",
+        choices: [
+          { label: "Set tone: Mercy", next: "icon-mercy" },
+          { label: "Set tone: Truth", next: "icon-truth" },
+          { label: "Set tone: Silence", next: "icon-silence" }
+        ]
+      },
+      "icon-confess": {
+        title: "The Whisper",
+        text: "You confess to a face that is not yours. The icon blinks, as if answering from a different timeline.",
+        choices: [
+          { label: "Ask for forgiveness", next: "icon-forgive" },
+          { label: "Ask for proof", next: "icon-proof" }
+        ]
+      },
+      "icon-circuit": {
+        title: "The Circuit",
+        text: "Behind the icon you find a wafer-thin circuit etched with prayers in a language you can almost read.",
+        choices: [
+          { label: "Close it", next: "icon-close" },
+          { label: "Trace the pattern", next: "icon-trace" }
+        ]
+      },
+      "icon-mercy": {
+        title: "Mercy Tone",
+        text: "A soft chime fills the room. You feel yourself forgiven by a stranger who shares your face.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: Mercy arrives through a device you cannot explain."
+      },
+      "icon-truth": {
+        title: "Truth Tone",
+        text: "The icon emits a low signal. A memory that never happened unfolds in your mind, and it is yours.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: Truth is a file you did not mean to open."
+      },
+      "icon-silence": {
+        title: "Silence Tone",
+        text: "The room dims. You hear a second heartbeat that is not your own.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: Silence is the only safe language between worlds."
+      },
+      "icon-forgive": {
+        title: "The Forgiveness",
+        text: "The icon warms, then cools. It does not answer, yet you feel a corridor open somewhere beyond the wall.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: Forgiveness is delayed, but it is not denied."
+      },
+      "icon-proof": {
+        title: "The Proof",
+        text: "A thin strip of light spills onto the desk, outlining a second version of your hand.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: Proof arrives like a shadow you cannot shake."
+      },
+      "icon-close": {
+        title: "The Closure",
+        text: "You close the icon and promise to forget. The promise feels like a lie you can live with.",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: The unknown remains, and so do you."
+      },
+      "icon-trace": {
+        title: "The Pattern",
+        text: "Your finger follows the etched prayer. The icon answers with a pulse, like a distant transmitter.\n",
+        choices: [{ label: "Return to the desk", next: "letters" }],
+        outcome: "Outcome: You are briefly in tune with a world that never agreed to exist."
+      },
+      window: {
+        title: "Window",
+        text: "The city is a chorus of engines and snow. A billboard flickers with a promise of a new self.",
+        choices: [
+          { label: "Open the window", outcome: "Outcome: Cold air brings clarity and doubt." },
+          { label: "Draw the curtain", outcome: "Outcome: You keep the city outside, but it still listens." }
+        ]
+      },
+      lamp: {
+        title: "Lamp",
+        text: "The lamp hums with a low neon ache, like a machine dreaming of redemption.",
+        choices: [
+          { label: "Turn it down", outcome: "Outcome: Shadows thicken and secrets sharpen." },
+          { label: "Turn it up", outcome: "Outcome: Light exposes what you hoped to hide." }
+        ]
+      }
+    };
+
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modal-title");
+    const modalText = document.getElementById("modal-text");
+    const modalOutcome = document.getElementById("modal-outcome");
+    const modalChoices = document.getElementById("modal-choices");
+    const outcomeEl = document.getElementById("outcome");
+    const closeModal = document.getElementById("close-modal");
+    const typewriterInput = document.getElementById("typewriter-input");
+    const confessionInput = document.getElementById("confession");
+    const confessionSubmit = document.getElementById("confession-submit");
+
+    function openScene(key) {
+      const scene = scenes[key];
+      modalTitle.textContent = scene.title;
+      modalText.textContent = scene.text;
+      modalOutcome.textContent = scene.outcome || "";
+      modalChoices.innerHTML = "";
+      typewriterInput.style.display = scene.type === "confession" ? "grid" : "none";
+      if (scene.type !== "confession") {
+        confessionInput.value = "";
+      }
+
+      scene.choices.forEach((choice) => {
+        const button = document.createElement("button");
+        button.className = "choice-button";
+        button.textContent = choice.label;
+        button.addEventListener("click", () => {
+          if (choice.next) {
+            openScene(choice.next);
+            return;
+          }
+          if (choice.outcome) {
+            outcomeEl.textContent = choice.outcome;
+            modalOutcome.textContent = choice.outcome;
+          }
+        });
+        modalChoices.appendChild(button);
+      });
+
+      if (scene.outcome) {
+        const continueButton = document.createElement("button");
+        continueButton.className = "choice-button";
+        continueButton.textContent = "Continue";
+        continueButton.addEventListener("click", () => {
+          modal.classList.remove("active");
+          modal.setAttribute("aria-hidden", "true");
+        });
+        modalChoices.appendChild(continueButton);
+      }
+
+      modal.classList.add("active");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    document.querySelectorAll(".hotspot").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".scene-object").forEach((obj) => {
+          obj.classList.remove("object-active");
+        });
+
+        if (button.dataset.target) {
+          const target = document.getElementById(button.dataset.target);
+          if (target) {
+            target.classList.add("object-active");
+          }
+        }
+
+        openScene(button.dataset.scene);
+      });
+    });
+
+    closeModal.addEventListener("click", () => {
+      modal.classList.remove("active");
+      modal.setAttribute("aria-hidden", "true");
+    });
+
+    function distortConfession(text) {
+      const replacements = [
+        [/\bI\b/gi, "we"],
+        [/\bmy\b/gi, "our"],
+        [/\bme\b/gi, "us"],
+        [/\btruth\b/gi, "signal"],
+        [/\bguilt\b/gi, "static"],
+        [/\bfear\b/gi, "echo"],
+        [/\bconfess\b/gi, "transmit"],
+        [/\bforgive\b/gi, "recalibrate"],
+        [/\breal\b/gi, "manufactured"],
+        [/\bmemory\b/gi, "implant"],
+        [/\bworld\b/gi, "timeline"],
+        [/\bdream\b/gi, "simulation"],
+        [/\bsoul\b/gi, "circuit"],
+        [/\bfree\b/gi, "prewritten"]
+      ];
+      let output = text.trim();
+      replacements.forEach(([pattern, value]) => {
+        output = output.replace(pattern, value);
+      });
+
+      const words = output.split(/\s+/).filter(Boolean);
+      if (words.length > 6) {
+        const head = words.slice(0, 3);
+        const tail = words.slice(-3);
+        const middle = words.slice(3, -3).reverse();
+        output = [...head, ...middle, ...tail].join(" ");
+      }
+
+      const omen = words.length % 2 === 0
+        ? "A parallel record insists this already happened."
+        : "The machine hints that your other self made a different choice.";
+      return `The ribbon replies: ${output}. ${omen}`;
+    }
+
+    confessionSubmit.addEventListener("click", () => {
+      const raw = confessionInput.value.trim();
+      if (!raw) {
+        modalOutcome.textContent = "Outcome: The machine refuses empty testimony.";
+        return;
+      }
+      const response = distortConfession(raw);
+      modalOutcome.textContent = response;
+      outcomeEl.textContent = response;
+    });
+  </script>
+</body>
+</html>
